@@ -4,9 +4,188 @@ import {CardPanel} from 'react-materialize'
 import AutoComplete from 'material-ui/AutoComplete';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Autocomplete from 'react-autocomplete'
+import { Container, Row, Col } from 'reactstrap';
+
+
+
+
+//styles
+import { makeStyles } from '@material-ui/styles';
+import classnames from 'classnames';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardMedia from '@material-ui/core/CardMedia';
+import CardContent from '@material-ui/core/CardContent';
+import CardActions from '@material-ui/core/CardActions';
+import Collapse from '@material-ui/core/Collapse';
+import Avatar from '@material-ui/core/Avatar';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import red from '@material-ui/core/colors/red';
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import ShareIcon from '@material-ui/icons/Share';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
+
+const useStyles = makeStyles(theme => ({
+    card: {
+      maxWidth: 400,
+    },
+    media: {
+      height: 0,
+      paddingTop: '56.25%', // 16:9
+    },
+    actions: {
+      display: 'flex',
+    },
+    expand: {
+      transform: 'rotate(0deg)',
+      marginLeft: 'auto'
+     
+    },
+    expandOpen: {
+      transform: 'rotate(180deg)',
+    },
+    avatar: {
+      backgroundColor: red[500],
+    },
+  }));
+  
+
+
+
 
 
 var cuisines = [];
+
+
+const RecipeReviewCard = ({rest}) => {
+    const classes = useStyles();
+    const [expanded, setExpanded] = React.useState(false);
+  
+    function handleExpandClick() {
+      setExpanded(!expanded);
+    }
+
+    return (
+        <Card className={classes.card}>
+          <CardHeader
+            avatar={
+              <Avatar aria-label="Recipe" className={classes.avatar}>
+                R
+              </Avatar>
+            }
+            action={
+              <IconButton>
+                <MoreVertIcon />
+              </IconButton>
+            }
+            title="Shrimp and Chorizo Paella"
+            subheader="September 14, 2016"
+          />
+
+          <CardPanel className="teal lighten-4 black-text">
+                
+                    <div className="card-content " >
+                        <span className="card-title">{rest["Restaurant Name"]}</span>
+                        <p>
+                        {rest["Cuisines"]}
+                        </p>
+                        <p className="left">
+                        {rest["Average Cost for two"]}  {rest["Currency"]}
+                        </p>
+                        
+                        <p className="right">
+                        Table Booking: {rest["Has Table booking"]} 
+                        </p>
+                        <br/>
+                        <p className="right">
+                            Online Delivery : {rest["Has Online delivery"]}  
+                        </p>
+                    </div>
+                    <div className="card-action">
+                        <p><font color={rest["Rating color"].replace(/ /g, '').toLowerCase()}>{rest["Aggregate rating"]} {rest["Rating text"]}</font></p>
+                        <p>{rest["Votes"]}</p>
+                    </div>
+                </CardPanel>
+        </Card>
+    );
+}
+
+
+const RenderEachRestuarent = ({response,classes}) => {
+    return response.map(rest => {
+        return (
+        <Col>
+          <Card className={classes.card}>
+              <CardHeader
+              avatar={
+                  <Avatar aria-label="Recipe" className={classes.avatar}>
+                  {rest["Restaurant Name"][0]}
+                  </Avatar>
+              }
+              action={
+                  <IconButton>
+                  <MoreVertIcon />
+                  </IconButton>
+              }
+              title={rest["Restaurant Name"]}
+              subheader={rest["Cuisines"]}
+              />
+  
+              <CardPanel className="teal lighten-4 black-text">
+                  
+                  <div className="card-content " >
+                      <p className="left">
+                      {rest["Average Cost for two"]}  {rest["Currency"]}
+                      </p>
+                      
+                      <p className="right">
+                      Table Booking: {rest["Has Table booking"]} 
+                      </p>
+                      <br/>
+                      <p className="right">
+                          Online Delivery : {rest["Has Online delivery"]}  
+                      </p>
+                  </div>
+                  <div className="card-action">
+                      <p><font color={rest["Rating color"].replace(/ /g, '').toLowerCase()}>{rest["Aggregate rating"]} {rest["Rating text"]}</font></p>
+                      <p>{rest["Votes"]}</p>
+                  </div>
+              </CardPanel>
+          </Card>
+        </Col> 
+        );
+      })
+}
+
+
+const RenderSurveys = ({response}) => {
+    const classes = useStyles();
+    const [expanded, setExpanded] = React.useState(false);
+  
+    function handleExpandClick() {
+      setExpanded(!expanded);
+    }
+
+    if(response.length > 0){
+    
+    return (
+        <Container>
+            <Row>
+                <RenderEachRestuarent response = {response} classes = {classes}/>
+            </Row>
+        </Container>
+    );
+    }else{
+        return (
+            <div>
+                No Data Available
+                {console.log("No data available.")}
+            </div>
+        );
+    }
+  }
 
 class ShowRestaurants extends Component {
 
@@ -18,10 +197,12 @@ class ShowRestaurants extends Component {
         cuisines : [],
         searchText: '' ,
         searchSort : '',
-        sort : ['Votes' ,'Rating' , 'Cost','Votes-desc' ,'Rating-desc' , 'Cost-desc',]
+        sort : ['Votes' ,'Rating' , 'Cost','Votes-desc' ,'Rating-desc' , 'Cost-desc',],
+        expanded: false 
       };
 
 
+    
     componentDidMount() {
         var cuisi = new Set([]);
         this.callApi()
@@ -62,6 +243,10 @@ class ShowRestaurants extends Component {
             return this.callApi();
         }
       }
+
+      handleExpandClick = () => {
+        this.setState(state => ({ expanded: !state.expanded }));
+      };
 
 
       setName = (e) => {
@@ -122,47 +307,7 @@ class ShowRestaurants extends Component {
       }
 
 
-    renderSurveys() {
-        if(this.state.response.length > 0){
-        return this.state.response.map(rest => {
-          return (
-            <div className="card darken-1 " key={rest._id}>
-            <CardPanel className="teal lighten-4 black-text">
-            
-                <div className="card-content " >
-                    <span className="card-title">{rest["Restaurant Name"]}</span>
-                    <p>
-                    {rest["Cuisines"]}
-                    </p>
-                    <p className="left">
-                    {rest["Average Cost for two"]}  {rest["Currency"]}
-                    </p>
-                    
-                    <p className="right">
-                    Table Booking: {rest["Has Table booking"]} 
-                    </p>
-                    <br/>
-                    <p className="right">
-                        Online Delivery : {rest["Has Online delivery"]}  
-                    </p>
-                </div>
-                <div className="card-action">
-                    <p><font color={rest["Rating color"].replace(/ /g, '').toLowerCase()}>{rest["Aggregate rating"]} {rest["Rating text"]}</font></p>
-                    <p>{rest["Votes"]}</p>
-                </div>
-            </CardPanel>
-              
-            </div>
-          );
-        });
-        }else{
-            return (
-                <div>
-                    No Data Available
-                </div>
-            );
-        }
-      }
+    
 
 
     renderSearchBox(){
@@ -215,7 +360,7 @@ class ShowRestaurants extends Component {
             {this.renderSearchBox()}  
             <br/>
             <br/>
-            {this.renderSurveys()}
+            <RenderSurveys response = {this.state.response}/>
           </div>
             </MuiThemeProvider>
           

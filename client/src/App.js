@@ -37,11 +37,11 @@ render() {
     return (
       <div className="App">
         
-          <p>
+          {/* <p>
             <strong>www.bhanupal.com</strong> <br/>
             <strong>http://bhanuchatsystem.herokuapp.com</strong> <br/>
             <strong>http://bhanupalsingh.herokuapp.com</strong> <br/>
-          </p> 
+          </p>  */}
         
         <ShowRestaurants />
         </div>
